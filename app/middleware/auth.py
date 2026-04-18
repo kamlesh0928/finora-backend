@@ -1,4 +1,6 @@
+import os
 from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -7,11 +9,11 @@ from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..config import get_settings
 from ..database import get_db
 from ..models.user import User
 
-settings = get_settings()
+# Load environment variables
+load_dotenv()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -26,14 +28,21 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def create_access_token(user_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
+    jwt_expire_minutes = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))
+    expire = datetime.now(timezone.utc) + timedelta(minutes=jwt_expire_minutes)
     payload = {"sub": user_id, "exp": expire, "iat": datetime.now(timezone.utc)}
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    
+    jwt_secret = os.getenv("JWT_SECRET", "change-me-to-a-random-secret-key")
+    jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
+    
+    return jwt.encode(payload, jwt_secret, algorithm=jwt_algorithm)
 
 
 def decode_access_token(token: str) -> dict:
+    jwt_secret = os.getenv("JWT_SECRET", "change-me-to-a-random-secret-key")
+    jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(token, jwt_secret, algorithms=[jwt_algorithm])
         return payload
     except JWTError:
         raise HTTPException(

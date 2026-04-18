@@ -1,22 +1,17 @@
-"""
-Fraud detection service — refactored from the existing GenAI code.
-Uses Google Gemini via LangChain to analyse SMS messages for fraud.
-Includes rate limiting for free-tier protection.
-"""
-
+import os
 import re
 import time
 import asyncio
 from typing import Optional
+from dotenv import load_dotenv
 
 import tldextract
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from ..config import get_settings
-
-settings = get_settings()
+# Load environment variables
+load_dotenv()
 
 # Rate limiting implementation (in-memory, per-minute)
 
@@ -28,7 +23,8 @@ def _rate_limit_check():
     now = time.time()
     # Remove timestamps older than 60s
     _call_timestamps[:] = [t for t in _call_timestamps if now - t < 60]
-    if len(_call_timestamps) >= settings.GEMINI_RATE_LIMIT_PER_MINUTE:
+    rate_limit = int(os.getenv("GEMINI_RATE_LIMIT_PER_MINUTE", "10"))
+    if len(_call_timestamps) >= rate_limit:
         raise RuntimeError(
             "Gemini API rate limit reached. Please try again in a minute."
         )
@@ -55,7 +51,6 @@ def analyze_links(links: list[str]) -> list[str]:
 
 
 # AI prompt Configuration
-
 _prompt = PromptTemplate.from_template("""
 You are an AI assistant specialized in detecting SMS fraud in India.
 
@@ -102,7 +97,7 @@ def _get_chain():
         _model = ChatGoogleGenerativeAI(
             model="gemini-2.0-flash-lite",
             temperature=0.2,
-            google_api_key=settings.GOOGLE_API_KEY,
+            google_api_key=os.getenv("GOOGLE_API_KEY", ""),
         )
     return _prompt | _model | _parser
 

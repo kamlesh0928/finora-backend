@@ -1,12 +1,10 @@
-"""Pydantic schemas for request/response validation."""
-
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
 
-# ─── Auth ────────────────────────────────────────────────────────────────────
+# Auth
 
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=255)
@@ -35,7 +33,7 @@ class AuthResponse(BaseModel):
     user: "UserResponse"
 
 
-# ─── User ────────────────────────────────────────────────────────────────────
+# User
 
 class UserResponse(BaseModel):
     id: str
@@ -75,7 +73,7 @@ class UpdateGameStateRequest(BaseModel):
     current_streak: Optional[int] = None
 
 
-# ─── Wallet ──────────────────────────────────────────────────────────────────
+# Wallet
 
 class WalletTransactionRequest(BaseModel):
     amount: float = Field(..., gt=0)
@@ -107,7 +105,7 @@ class WalletResponse(BaseModel):
     total_spent: float
 
 
-# ─── Game Progress ───────────────────────────────────────────────────────────
+# Game Progress
 
 class SubmitDecisionRequest(BaseModel):
     module: str  # budgeting, fraud, emergency, scenario
@@ -135,7 +133,7 @@ class GameProgressResponse(BaseModel):
         from_attributes = True
 
 
-# ─── Fraud Detection ────────────────────────────────────────────────────────
+# Fraud Detection
 
 class FraudAnalyzeRequest(BaseModel):
     sms_text: str = Field(..., min_length=5, max_length=2000)
@@ -150,8 +148,7 @@ class FraudAnalyzeResponse(BaseModel):
     domains: list[str] = []
 
 
-# ─── Sync ────────────────────────────────────────────────────────────────────
-
+# Sync
 class SyncPushItem(BaseModel):
     action: str  # "transaction", "game_progress", "achievement", "update_state"
     payload: dict
@@ -172,7 +169,7 @@ class SyncPullResponse(BaseModel):
     server_time: datetime
 
 
-# ─── Achievements ────────────────────────────────────────────────────────────
+# Achievements
 
 class AchievementResponse(BaseModel):
     id: str
@@ -193,8 +190,7 @@ class AwardAchievementRequest(BaseModel):
     badge_icon: Optional[str] = None
 
 
-# ─── Generic ─────────────────────────────────────────────────────────────────
-
+# Generic
 class MessageResponse(BaseModel):
     message: str
     success: bool = True

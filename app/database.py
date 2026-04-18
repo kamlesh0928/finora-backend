@@ -1,15 +1,12 @@
-"""
-Async SQLAlchemy engine and session factory for NeonDB (PostgreSQL).
-"""
-
+import os
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-from .config import get_settings
+# Load environment variables
+load_dotenv()
 
-settings = get_settings()
-
-db_url = settings.DATABASE_URL
+db_url = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:pass@host/dbname")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
 elif db_url.startswith("postgresql://"):
@@ -25,7 +22,7 @@ db_url = db_url.replace("?channel_binding=require", "")
 
 engine = create_async_engine(
     db_url,
-    echo=settings.DEBUG,
+    echo=os.getenv("DEBUG", "False").lower() == "true",
     pool_size=5,
     max_overflow=10,
     pool_pre_ping=True,

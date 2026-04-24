@@ -11,15 +11,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .database import init_db, close_db
 from .routes import auth, user, wallet, game, fraud, sync
-
+from .services.scenario_cron import start_cron, stop_cron
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
     await init_db()
+    start_cron()
     yield
+    stop_cron()
     await close_db()
-
 
 app = FastAPI(
     title=os.getenv("APP_NAME", "Finora API"),
@@ -62,7 +63,6 @@ async def root():
         "version": "1.0.0",
         "environment": os.getenv("ENVIRONMENT", "development")
     }
-
 
 @app.get("/health", tags=["Health"])
 async def health_check():

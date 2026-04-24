@@ -34,7 +34,18 @@ async def update_profile(
     if body.role is not None:
         if body.role not in ("Farmer", "Woman", "Student", "Young Adult"):
             raise HTTPException(status_code=400, detail="Invalid role")
-        user.role = body.role
+        
+        # Only set initial balance if role is changing/being set for the first time
+        if user.role != body.role:
+            user.role = body.role
+            if body.role == "Farmer":
+                user.wallet_balance = 12000.0
+            elif body.role == "Woman":
+                user.wallet_balance = 8000.0
+            elif body.role == "Student":
+                user.wallet_balance = 5000.0
+            elif body.role == "Young Adult":
+                user.wallet_balance = 20000.0
     if body.language is not None:
         if body.language not in ("en", "hi"):
             raise HTTPException(status_code=400, detail="Supported languages: en, hi")

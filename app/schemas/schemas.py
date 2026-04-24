@@ -3,38 +3,31 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
-
 # Auth
-
 class RegisterRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=255)
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
 
-
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
-
 
 class GoogleAuthRequest(BaseModel):
     id_token: str
     name: Optional[str] = None
     email: Optional[EmailStr] = None
-
+    is_signup: bool = False
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
-
 
 class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: "UserResponse"
 
-
 # User
-
 class UserResponse(BaseModel):
     id: str
     email: str
@@ -56,12 +49,10 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class UpdateProfileRequest(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None
     language: Optional[str] = None
-
 
 class UpdateGameStateRequest(BaseModel):
     wallet_balance: Optional[float] = None
@@ -72,16 +63,13 @@ class UpdateGameStateRequest(BaseModel):
     scenarios_completed: Optional[int] = None
     current_streak: Optional[int] = None
 
-
 # Wallet
-
 class WalletTransactionRequest(BaseModel):
     amount: float = Field(..., gt=0)
     category: str  # budgeting, fraud, emergency, scenario, salary, reward
     description: str
     source_module: Optional[str] = None
     scenario_id: Optional[str] = None
-
 
 class TransactionResponse(BaseModel):
     id: str
@@ -97,16 +85,13 @@ class TransactionResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class WalletResponse(BaseModel):
     balance: float
     emergency_fund: float
     total_earned: float
     total_spent: float
 
-
 # Game Progress
-
 class SubmitDecisionRequest(BaseModel):
     module: str  # budgeting, fraud, emergency, scenario
     scenario_id: str
@@ -116,7 +101,6 @@ class SubmitDecisionRequest(BaseModel):
     stress_impact: float = 0.0
     wallet_impact: float = 0.0
     notes: Optional[str] = None
-
 
 class GameProgressResponse(BaseModel):
     id: str
@@ -132,12 +116,9 @@ class GameProgressResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 # Fraud Detection
-
 class FraudAnalyzeRequest(BaseModel):
     sms_text: str = Field(..., min_length=5, max_length=2000)
-
 
 class FraudAnalyzeResponse(BaseModel):
     fraud_status: str  # "Fraud" or "Real"
@@ -147,7 +128,6 @@ class FraudAnalyzeResponse(BaseModel):
     links_found: list[str] = []
     domains: list[str] = []
 
-
 # Sync
 class SyncPushItem(BaseModel):
     action: str  # "transaction", "game_progress", "achievement", "update_state"
@@ -155,11 +135,9 @@ class SyncPushItem(BaseModel):
     timestamp: datetime
     local_id: Optional[str] = None
 
-
 class SyncPushRequest(BaseModel):
     items: list[SyncPushItem]
     last_sync_at: Optional[datetime] = None
-
 
 class SyncPullResponse(BaseModel):
     user: UserResponse
@@ -168,9 +146,7 @@ class SyncPullResponse(BaseModel):
     achievements: list["AchievementResponse"] = []
     server_time: datetime
 
-
 # Achievements
-
 class AchievementResponse(BaseModel):
     id: str
     badge_id: str
@@ -182,13 +158,11 @@ class AchievementResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class AwardAchievementRequest(BaseModel):
     badge_id: str
     badge_name: str
     badge_description: Optional[str] = None
     badge_icon: Optional[str] = None
-
 
 # Generic
 class MessageResponse(BaseModel):

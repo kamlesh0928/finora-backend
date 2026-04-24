@@ -54,7 +54,10 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
-    if not user or not user.password_hash or not verify_password(body.password, user.password_hash):
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not user.password_hash or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     if not user.is_active:
@@ -85,6 +88,9 @@ async def google_auth(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
     user = result.scalar_one_or_none()
 
     if user is None:
+        if not body.is_signup:
+            raise HTTPException(status_code=404, detail="User not found")
+            
         user = User(
             email=email,
             name=body.name or email.split("@")[0],
@@ -96,6 +102,8 @@ async def google_auth(body: GoogleAuthRequest, db: AsyncSession = Depends(get_db
         await db.commit()
         await db.refresh(user)
     else:
+        if body.is_signup:
+            pass
         user.last_login_at = datetime.now(timezone.utc)
         await db.commit()
 
@@ -114,10 +122,8 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
     if not user:
-        # Don't reveal whether email exists
         return MessageResponse(message="If the email exists, a reset link has been sent.")
 
-    # TODO: Implement an external email service integration (e.g., SendGrid or AWS SES).
     return MessageResponse(message="If the email exists, a reset link has been sent.")
 
 @router.post("/logout", response_model=MessageResponse)

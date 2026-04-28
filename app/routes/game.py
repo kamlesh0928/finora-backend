@@ -1,5 +1,3 @@
-"""Game progress routes — submit decisions, view progress, reset."""
-
 from fastapi import APIRouter, Depends
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +17,6 @@ from ..schemas.schemas import (
 
 router = APIRouter(prefix="/game", tags=["Game"])
 
-
 @router.get("/progress/{module}", response_model=list[GameProgressResponse])
 async def get_progress(
     module: str,
@@ -35,7 +32,6 @@ async def get_progress(
     items = result.scalars().all()
     return [GameProgressResponse.model_validate(i) for i in items]
 
-
 @router.get("/progress", response_model=list[GameProgressResponse])
 async def get_all_progress(
     user: User = Depends(get_current_user),
@@ -49,7 +45,6 @@ async def get_all_progress(
     )
     items = result.scalars().all()
     return [GameProgressResponse.model_validate(i) for i in items]
-
 
 @router.post("/decision", response_model=GameProgressResponse, status_code=201)
 async def submit_decision(
@@ -83,7 +78,7 @@ async def submit_decision(
     user.scenarios_completed += 1
 
     # Recalculate financial health score
-    health = 50
+    health = 0
     if user.wallet_balance >= 10000:
         health += 15
     elif user.wallet_balance >= 5000:
@@ -105,7 +100,6 @@ async def submit_decision(
 
     return GameProgressResponse.model_validate(progress)
 
-
 @router.post("/reset/{module}", response_model=MessageResponse)
 async def reset_module(
     module: str,
@@ -125,15 +119,14 @@ async def reset_module(
         user.wallet_balance = 5000.0
         user.emergency_fund = 0.0
         user.stress_level = 0.20
-        user.safety_score = 50
-        user.financial_health_score = 50
+        user.safety_score = 0
+        user.financial_health_score = 0
         user.scenarios_completed = 0
         user.total_earned = 0.0
         user.total_spent = 0.0
 
     await db.commit()
     return MessageResponse(message=f"Progress for '{module}' has been reset.")
-
 
 @router.post("/achievement", response_model=AchievementResponse, status_code=201)
 async def award_achievement(

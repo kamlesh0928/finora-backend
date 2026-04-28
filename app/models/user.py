@@ -17,17 +17,17 @@ class User(Base):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=True)  # Nullable for Google OAuth authenticated users
-    role: Mapped[str] = mapped_column(String(50), nullable=True)  # User demographic category for personalized content
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=True)
+    role: Mapped[str] = mapped_column(String(50), nullable=True)
     language: Mapped[str] = mapped_column(String(10), default="en")
-    auth_provider: Mapped[str] = mapped_column(String(20), default="email")  # Identifier for the authentication method used
+    auth_provider: Mapped[str] = mapped_column(String(20), default="email")
 
     # Game state
     wallet_balance: Mapped[float] = mapped_column(Float, default=5000.0)
     emergency_fund: Mapped[float] = mapped_column(Float, default=0.0)
-    financial_health_score: Mapped[int] = mapped_column(default=50)
+    financial_health_score: Mapped[int] = mapped_column(default=0)
     stress_level: Mapped[float] = mapped_column(Float, default=0.20)
-    safety_score: Mapped[int] = mapped_column(default=50)
+    safety_score: Mapped[int] = mapped_column(default=0)
 
     # Stats
     total_earned: Mapped[float] = mapped_column(Float, default=0.0)

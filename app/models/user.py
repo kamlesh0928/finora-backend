@@ -41,3 +41,7 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
     last_login_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_sync_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    @property
+    def has_password(self) -> bool:
+        return self.password_hash is not None

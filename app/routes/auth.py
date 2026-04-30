@@ -20,6 +20,7 @@ from ..schemas.schemas import (
     MessageResponse,
     RegisterRequest,
     UserResponse,
+    ResetPasswordRequest,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -125,6 +126,22 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
         return MessageResponse(message="If the email exists, a reset link has been sent.")
 
     return MessageResponse(message="If the email exists, a reset link has been sent.")
+
+@router.post("/reset-password", response_model=MessageResponse)
+async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    """
+    Demo endpoint: Directly resets the user's password without an OTP for demo purposes.
+    """
+    result = await db.execute(select(User).where(User.email == body.email))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.password_hash = hash_password(body.new_password)
+    await db.commit()
+    
+    return MessageResponse(message="Password reset successfully")
 
 @router.post("/logout", response_model=MessageResponse)
 async def logout(user: User = Depends(get_current_user)):

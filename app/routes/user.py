@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
-from ..middleware.auth import get_current_user
+from ..middleware.auth import get_current_user, hash_password
 from ..models.user import User
 from ..models.achievement import UserAchievement
 from ..schemas.schemas import (
@@ -13,6 +13,8 @@ from ..schemas.schemas import (
     UpdateGameStateRequest,
     UpdateProfileRequest,
     UserResponse,
+    AddPasswordRequest,
+    MessageResponse,
 )
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -21,6 +23,20 @@ router = APIRouter(prefix="/user", tags=["User"])
 @router.get("/profile", response_model=UserResponse)
 async def get_profile(user: User = Depends(get_current_user)):
     return UserResponse.model_validate(user)
+
+
+@router.put("/add-password", response_model=MessageResponse)
+async def add_password(
+    body: AddPasswordRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if user.has_password:
+        raise HTTPException(status_code=400, detail="User already has a password")
+        
+    user.password_hash = hash_password(body.password)
+    await db.commit()
+    return MessageResponse(message="Password added successfully")
 
 
 @router.put("/profile", response_model=UserResponse)

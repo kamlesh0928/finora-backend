@@ -22,6 +22,13 @@ class GoogleAuthRequest(BaseModel):
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    new_password: str = Field(..., min_length=6, max_length=128)
+
+class AddPasswordRequest(BaseModel):
+    password: str = Field(..., min_length=6, max_length=128)
+
 class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -32,6 +39,8 @@ class UserResponse(BaseModel):
     id: str
     email: str
     name: str
+    auth_provider: str = "email"
+    has_password: bool = False
     role: Optional[str] = None
     language: str = "en"
     wallet_balance: float = 5000.0

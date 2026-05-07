@@ -11,3 +11,4 @@ langchain==0.3.13
 langchain-google-genai==2.0.0
 bcrypt==4.2.0
 apscheduler==3.10.4
+tldextract==3.6.0
